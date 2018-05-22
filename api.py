@@ -511,7 +511,7 @@ def lastnetworkops():
     con = psycopg2.connect(**config.POSTGRES)
     cur = con.cursor()
 
-    query = "SELECT * FROM ops ORDER BY block_num DESC LIMIT 10"
+    query = "SELECT * FROM ops ORDER BY block_num DESC, ath DESC LIMIT 10"
     cur.execute(query)
     results = cur.fetchall()
     con.close()
@@ -519,7 +519,12 @@ def lastnetworkops():
     # add operation data
     for o in range(0, len(results)):
         operation_id = results[o][2]
-        object = _get_object(operation_id)
+        try:
+        	object = _get_object(operation_id)
+	except:
+		ws.connect(config.WEBSOCKET_URL)
+		return json.dumps({ "error": "websocker error" }), 500
+
         results[o] = results[o] + tuple(object[0]["op"])
 
     return jsonify(results)

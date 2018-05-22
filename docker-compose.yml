@@ -18,7 +18,7 @@ services:
       - POSTGRES_USER=explorer
       - POSTGRES_PASSWORD=posta
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - ./db-data:/var/lib/postgresql/data
     networks:
       - private
 
@@ -57,6 +57,12 @@ services:
     image: bitshares-explorer
     build: .
     command: /usr/bin/env python /explorer/postgres/import_realtime_ops.py
+    restart: on-failure
+    #healthcheck:
+    #  test: curl --fail -s http://localhost:5000/lastnetworkops || exit 1
+    #  interval: 1m
+    #  timeout: 10s
+    #  retries: 1
     depends_on:
       - db
     env_file:

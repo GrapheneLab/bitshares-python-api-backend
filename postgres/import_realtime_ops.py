@@ -13,34 +13,42 @@ def on_message(ws, message):
     #print(message)
     j = json.loads(message)
     try:
-        #print j["params"][1][0][0]["id"]
-        id_ = j["params"][1][0][0]["id"]
-        #print id_[:4]
-        if id_[:4] == "2.9.":
-            #print j["params"][1][0][0]
-            data = api._get_object(id_)
-            #print data[0]
-            account_id = data[0]["account"]
-            data_a = api._account(account_id)
+        result_ = j["params"][1][0]
+        result_.reverse()
+        ops = set()
+        for d in result_:
+            id_ = d["id"]
+            print(id_)
+            if id_[:4] == "2.9.":
+                op_id = d["operation_id"]
+                if op_id in ops:
+                    continue
+                ops.add(op_id)
 
-            #print data_a[0]["name"]
-            account_name = data_a[0]["name"]
+                #print j["params"][1][0][0]
+                data = api._get_object(id_)
+                #print data[0]
+                account_id = data[0]["account"]
+                data_a = api._account(account_id)
 
-            data2 = api._get_object(data[0]['operation_id'])
-            block_num = data2[0]["block_num"]
+                #print data_a[0]["name"]
+                account_name = data_a[0]["name"]
 
-            op_type = data2[0]["op"][0]
+                data2 = api._get_object(data[0]['operation_id'])
+                block_num = data2[0]["block_num"]
 
-            #print block_num
-            trx_in_block =  data2[0]["trx_in_block"]
-            op_in_trx =  data2[0]["op_in_trx"]
+                op_type = data2[0]["op"][0]
 
-            con = psycopg2.connect(**config.POSTGRES)
-            cur = con.cursor()
-            query = "INSERT INTO ops (oh, ath, block_num, trx_in_block, op_in_trx, datetime, account_id, op_type, account_name) VALUES(%s, %s, %s, %s, %s, NOW(), %s, %s, %s)"
-            print query
-            cur.execute(query, (id_, data[0]['operation_id'], str(block_num), str(trx_in_block), str(op_in_trx), account_id, str(op_type), account_name))
-            con.commit()
+                #print block_num
+                trx_in_block =  data2[0]["trx_in_block"]
+                op_in_trx =  data2[0]["op_in_trx"]
+
+                con = psycopg2.connect(**config.POSTGRES)
+                cur = con.cursor()
+                query = "INSERT INTO ops (oh, ath, block_num, trx_in_block, op_in_trx, datetime, account_id, op_type, account_name) VALUES(%s, %s, %s, %s, %s, NOW(), %s, %s, %s)"
+                print query
+                cur.execute(query, (id_, data[0]['operation_id'], str(block_num), str(trx_in_block), str(op_in_trx), account_id, str(op_type), account_name))
+                con.commit()
     except:
         pass
 
